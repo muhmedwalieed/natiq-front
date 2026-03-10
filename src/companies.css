@@ -1,0 +1,252 @@
+/* Companies Management page styles — table, badges, modals */
+
+.cm-wrapper {
+  padding: 48px 64px;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ── Header ── */
+.cm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.cm-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #042835;
+}
+
+.cm-add-btn {
+  background: #CAF301;
+  color: #042835;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 28px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cm-add-btn:hover { background: #b8db00; }
+
+/* ── Table ── */
+.cm-table-wrapper {
+  border: 1.5px solid #e0e0e0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.cm-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cm-table th {
+  padding: 16px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #042835;
+  text-align: center;
+  border-bottom: 1.5px solid #e0e0e0;
+  background: #fff;
+}
+
+.cm-table th:first-child,
+.cm-table td:first-child { width: 56px; }
+
+.cm-table td {
+  padding: 18px 20px;
+  font-size: 14px;
+  color: #042835;
+  text-align: center;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff;
+}
+
+.cm-table tbody tr:last-child td { border-bottom: none; }
+.cm-table tbody tr:hover td { background: #fafff0; }
+
+/* ── Status badges ── */
+.cm-badge {
+  display: inline-block;
+  padding: 5px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cm-active { background: #CAF301; color: #042835; }
+.cm-idle   { background: #042835; color: #fff; }
+
+/* ── 3-dot menu ── */
+.cm-actions-cell { position: relative; }
+
+.cm-dots-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #042835;
+  padding: 0 8px;
+  line-height: 1;
+}
+
+.cm-menu {
+  position: fixed;
+  background: #fff;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  z-index: 100;
+  min-width: 110px;
+  overflow: hidden;
+}
+
+.cm-menu button {
+  display: block;
+  width: 100%;
+  padding: 10px 18px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #042835;
+  cursor: pointer;
+}
+
+.cm-menu button:hover { background: #f5f5f5; }
+.cm-menu-delete { color: #c0392b !important; }
+
+.cm-empty {
+  text-align: center;
+  color: #aaa;
+  padding: 32px !important;
+  font-size: 14px;
+}
+
+/* ── Modal ── */
+.cm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.cm-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 36px 40px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+}
+
+.cm-modal-sm { max-width: 380px; }
+
+.cm-modal h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #042835;
+  margin: 0 0 24px;
+}
+
+.cm-modal p {
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 28px;
+}
+
+.cm-modal-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.cm-modal-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.cm-modal-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #042835;
+}
+
+.cm-modal-group input,
+.cm-modal-group select {
+  height: 42px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  color: #042835;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.cm-modal-group input:focus,
+.cm-modal-group select:focus { border-color: #55711d; }
+
+.cm-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cm-modal-cancel {
+  padding: 10px 24px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #042835;
+  cursor: pointer;
+}
+
+.cm-modal-cancel:hover { background: #f5f5f5; }
+
+.cm-modal-save {
+  padding: 10px 28px;
+  border: none;
+  border-radius: 10px;
+  background: #CAF301;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #042835;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cm-modal-save:hover { background: #b8db00; }
+
+.cm-modal-delete {
+  padding: 10px 28px;
+  border: none;
+  border-radius: 10px;
+  background: #e74c3c;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cm-modal-delete:hover { background: #c0392b; }

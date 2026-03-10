@@ -1,0 +1,150 @@
+/* Role-Permissions Management page styles */
+
+/* ── Outer wrapper — full width, no extra padding ── */
+.rp-outer {
+  width: 100%;
+  padding: 32px 48px;
+}
+
+/* ── Card ── */
+.rp-card {
+  background: #f4f4f4;
+  border-radius: 20px;
+  padding: 40px 48px;
+  width: 100%;
+}
+
+/* ── Title ── */
+.rp-title {
+  font-size: 30px;
+  font-weight: 700;
+  color: #042835;
+  margin: 0 0 28px;
+}
+
+/* ── Role selector ── */
+.rp-select-group {
+  margin-bottom: 28px;
+}
+
+.rp-select-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.rp-select-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.rp-select {
+  appearance: none;
+  height: 44px;
+  padding: 0 48px 0 16px;
+  border: 1.5px solid #d8d8d8;
+  border-radius: 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #042835;
+  background: #fff;
+  cursor: pointer;
+  outline: none;
+  min-width: 200px;
+}
+
+.rp-select-arrow {
+  position: absolute;
+  right: 14px;
+  font-size: 18px;
+  color: #042835;
+  pointer-events: none;
+}
+
+/* ── Section labels ── */
+.rp-section-label {
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.rp-granted-label {
+  background: #CAF301;
+  color: #042835;
+}
+
+.rp-revoked-label {
+  background: #042835;
+  color: #fff;
+  margin-top: 24px;
+}
+
+/* ── Permission grid ── */
+.rp-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.rp-grid-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.rp-perm-placeholder {
+  /* empty cell to keep grid aligned */
+}
+
+/* ── Permission item ── */
+.rp-perm-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: 1.5px solid #e0e0e0;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #042835;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  user-select: none;
+}
+
+.rp-perm-item:hover {
+  border-color: #a4b426;
+  background: #f9ffe0;
+}
+
+/* ── Icons ── */
+.rp-perm-icon {
+  font-size: 15px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.rp-icon-granted {
+  color: #042835;
+}
+
+.rp-icon-revoked {
+  color: #CAF301;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.rp-empty {
+  font-size: 13px;
+  color: #aaa;
+  padding: 8px 0;
+}

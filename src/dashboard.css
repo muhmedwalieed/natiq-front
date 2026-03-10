@@ -1,0 +1,214 @@
+/* Dashboard layout, navbar, and profile card styles */
+
+/* ── Layout ── */
+.dash-wrapper {
+  min-height: 100vh;
+  background-color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ── Navbar ── */
+.dash-nav {
+  display: flex;
+  align-items: center;
+  padding: 0 48px;
+  height: 72px;
+  border-bottom: 1.5px solid #e8e8e8;
+  background: #ffffff;
+  gap: 32px;
+}
+
+.dash-logo {
+  width: 110px;
+  height: auto;
+  flex-shrink: 0;
+  margin-right: 16px;
+}
+
+.dash-nav-links {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 32px;
+  flex: 1;
+}
+
+.dash-nav-item {
+  font-size: 14px;
+  font-weight: 500;
+  color: #042835;
+  cursor: pointer;
+  padding: 4px 0;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+
+.dash-nav-item:hover {
+  color: #55711d;
+}
+
+.dash-nav-item.active {
+  color: #042835;
+  font-weight: 600;
+}
+
+.dash-logout-btn {
+  background: #CAF301;
+  color: #042835;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 22px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.dash-logout-btn:hover {
+  background: #b8db00;
+}
+
+/* ── Main Content ── */
+.dash-main {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 60px 24px;
+}
+
+.dash-coming-soon {
+  margin-top: 120px;
+  font-size: 20px;
+  font-weight: 500;
+  color: #aaa;
+}
+
+/* ── Profile Card ── */
+.profile-card {
+  background: #f8f8f8;
+  border-radius: 20px;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.08);
+  padding: 40px 56px 36px;
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #042835;
+  margin: 0 0 24px;
+  align-self: flex-start;
+}
+
+/* ── Avatar ── */
+.avatar-wrapper {
+  margin-bottom: 28px;
+}
+
+.avatar-img {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #dce3c6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: #55711d;
+  text-transform: uppercase;
+}
+
+/* ── Fields ── */
+.profile-fields {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.field-row {
+  display: flex;
+  gap: 16px;
+}
+
+.field-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-group label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #042835;
+}
+
+.field-group input {
+  height: 52px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 30px;
+  padding: 0 22px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: #042835;
+  background: #fafafa;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.field-group input:focus {
+  border-color: #55711d;
+  background: #fff;
+}
+
+/* ── Edit Button ── */
+.edit-user-btn {
+  width: 100%;
+  height: 50px;
+  background: #CAF301;
+  color: #042835;
+  border: none;
+  border-radius: 30px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: background 0.2s;
+}
+
+.edit-user-btn:hover {
+  background: #b8db00;
+}
+
+/* ── Timestamps ── */
+.profile-timestamps {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #555;
+}
+
+.profile-timestamps strong {
+  font-weight: 600;
+  color: #042835;
+}

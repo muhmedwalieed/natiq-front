@@ -1,0 +1,279 @@
+/* Roles Management page styles — table, badges, modals */
+
+.rm-wrapper {
+  padding: 48px 64px;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ── Header ── */
+.rm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.rm-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #042835;
+}
+
+.rm-add-btn {
+  background: #CAF301;
+  color: #042835;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 28px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.rm-add-btn:hover {
+  background: #b8db00;
+}
+
+/* ── Table ── */
+.rm-table-wrapper {
+  border: 1.5px solid #e0e0e0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.rm-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rm-table thead tr {
+  background: #fff;
+}
+
+.rm-table th {
+  padding: 16px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #042835;
+  text-align: center;
+  border-bottom: 1.5px solid #e0e0e0;
+}
+
+.rm-table th:first-child,
+.rm-table td:first-child {
+  text-align: center;
+  width: 56px;
+}
+
+.rm-table td {
+  padding: 18px 20px;
+  font-size: 14px;
+  color: #042835;
+  text-align: center;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff;
+}
+
+.rm-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rm-table tbody tr:hover td {
+  background: #fafff0;
+}
+
+/* ── Users badge ── */
+.rm-badge {
+  display: inline-block;
+  background: #CAF301;
+  color: #042835;
+  padding: 5px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── 3-dot menu ── */
+.rm-actions-cell {
+  position: relative;
+}
+
+.rm-dots-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #042835;
+  padding: 0 8px;
+  line-height: 1;
+}
+
+.rm-menu {
+  position: fixed;
+  background: #fff;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  z-index: 1000;
+  min-width: 110px;
+  overflow: hidden;
+}
+
+.rm-menu button {
+  display: block;
+  width: 100%;
+  padding: 10px 18px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #042835;
+  cursor: pointer;
+}
+
+.rm-menu button:hover {
+  background: #f5f5f5;
+}
+
+.rm-menu-delete {
+  color: #c0392b !important;
+}
+
+.rm-empty {
+  text-align: center;
+  color: #aaa;
+  padding: 32px !important;
+  font-size: 14px;
+}
+
+/* ── Modal overlay ── */
+.rm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.rm-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 36px 40px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+}
+
+.rm-modal-sm {
+  max-width: 380px;
+}
+
+.rm-modal h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #042835;
+  margin: 0 0 24px;
+}
+
+.rm-modal p {
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 28px;
+}
+
+.rm-modal-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.rm-modal-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rm-modal-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #042835;
+}
+
+.rm-modal-group input {
+  height: 42px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  color: #042835;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.rm-modal-group input:focus {
+  border-color: #55711d;
+}
+
+.rm-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.rm-modal-cancel {
+  padding: 10px 24px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #042835;
+  cursor: pointer;
+}
+
+.rm-modal-cancel:hover {
+  background: #f5f5f5;
+}
+
+.rm-modal-save {
+  padding: 10px 28px;
+  border: none;
+  border-radius: 10px;
+  background: #CAF301;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #042835;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.rm-modal-save:hover {
+  background: #b8db00;
+}
+
+.rm-modal-delete {
+  padding: 10px 28px;
+  border: none;
+  border-radius: 10px;
+  background: #e74c3c;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.rm-modal-delete:hover {
+  background: #c0392b;
+}
