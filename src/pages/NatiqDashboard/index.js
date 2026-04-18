@@ -285,6 +285,31 @@ function CalendarView() {
     );
 }
 
+/* ══════════════════════════════════════
+   TOAST NOTIFICATION SYSTEM
+══════════════════════════════════════ */
+function useToast() {
+    const [toasts, setToasts] = useState([]);
+    const show = (message, type = 'success') => {
+        const id = Date.now();
+        setToasts(prev => [...prev, { id, message, type }]);
+        setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3500);
+    };
+    const ToastContainer = () => (
+        <div className="cd-toast-container">
+            {toasts.map(t => (
+                <div key={t.id} className={`cd-toast cd-toast-${t.type}`}>
+                    <span className="cd-toast-icon">
+                        {t.type === 'success' ? '✓' : t.type === 'error' ? '✕' : 'ℹ'}
+                    </span>
+                    {t.message}
+                </div>
+            ))}
+        </div>
+    );
+    return { show, ToastContainer };
+}
+
 /* ═══════════════════════════════════════
    TICKETS VIEW
 ═══════════════════════════════════════ */
@@ -316,6 +341,8 @@ function TicketsView() {
     const chatInputRef = useRef(null);
     const [loadingTickets, setLoadingTickets] = useState(false);
     const [loadingMessages, setLoadingMessages] = useState(false);
+
+    const { show: showToast, ToastContainer } = useToast();
 
     // Auto-focus input when ticket selection changes
     useEffect(() => {
@@ -376,7 +403,11 @@ function TicketsView() {
     const filterColor = { Pending: "cd-pill-pending", Opened: "cd-pill-opened", Closed: "cd-pill-closed" };
 
     useEffect(() => {
-        setSelectedTicket(null);
+        // Only clear selected ticket if it's a manual filter change, 
+        // not an automatic selection from claim
+        if (!selectedTicket || (selectedTicket.status !== 'in_progress' && filter === 'Opened')) {
+            setSelectedTicket(null);
+        }
         fetchTickets();
     }, [filter, channel]);
 
@@ -454,24 +485,25 @@ function TicketsView() {
         if (!selectedTicket) return;
         try {
             await agentApi.claimTicket(selectedTicket._id);
-            alert("Ticket claimed successfully!");
+            showToast('Ticket claimed successfully!', 'success');
+            // Update the local status immediately so the UI doesn't clear it
+            setSelectedTicket(prev => ({ ...prev, status: 'in_progress' }));
             setFilter("Opened");
         } catch (error) {
             console.error("Claim failed:", error);
-            alert("Failed to claim ticket.");
+            showToast('Failed to claim ticket.', 'error');
         }
     };
 
     const handleClose = async () => {
         if (!selectedTicket) return;
-        if (!window.confirm("Are you sure you want to close this ticket? This will trigger automatic QA Analysis.")) return;
         try {
             await agentApi.closeTicket(selectedTicket._id);
-            alert("Ticket closed successfully!");
+            showToast('Ticket closed successfully!', 'success');
             setFilter("Closed");
         } catch (error) {
             console.error("Close failed:", error);
-            alert("Failed to close ticket.");
+            showToast('Failed to close ticket.', 'error');
         }
     };
 
@@ -506,7 +538,7 @@ function TicketsView() {
 
     return (
         <div className="cd-wa-layout">
-            {/* ── 1. Far Left Rail (Channels) ── */}
+            <ToastContainer />
             <div className="cd-wa-rail">
                 <button 
                     className={`cd-wa-rail-btn ${channel === 'all' ? 'cd-wa-rail-active' : ''}`}
