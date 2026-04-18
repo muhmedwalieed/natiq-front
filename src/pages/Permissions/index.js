@@ -1,7 +1,7 @@
 // Permissions Management view. Table of permissions with name and description.
 // Full front-end CRUD: add, edit, delete with confirm modal. 3-dot action menu (fixed position).
 import { useState, useRef, useEffect } from "react";
-import "../permissions.css";
+import "./Permissions.css";
 
 const INITIAL_PERMISSIONS = [
     { id: 1, name: "create_permission",      description: "Allows creating a new permission using POST"       },

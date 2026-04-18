@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import '../App.css';
-import logo from '../assets/logo.png';
-import googleIcon from '../assets/google.png';
+import '../../App.css';
+import logo from '../../assets/logo.png';
+import googleIcon from '../../assets/google.png';
+import { agentApi } from '../../services/agentApi';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -17,6 +18,13 @@ const Login = () => {
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
     const [isHuman, setIsHuman] = useState(false);
+
+    React.useEffect(() => {
+        const token = localStorage.getItem('agent_token');
+        if (token) {
+            navigate('/dashboard');
+        }
+    }, [navigate]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -57,8 +65,17 @@ const Login = () => {
                 toast.error("Invalid email or password!");
                 return;
             }
-            toast.success("Welcome back to NATIQ!");
-            setTimeout(() => navigate("/dashboard"), 1000);
+            
+            // Call actual agent API instead of simulated timeout
+            agentApi.login(formData.email, formData.password, 'natiq')
+                .then(data => {
+                    toast.success("Welcome back to NATIQ!");
+                    setTimeout(() => navigate("/dashboard"), 1000);
+                })
+                .catch(err => {
+                    toast.error(err.message || 'Login failed');
+                });
+            
         } else {
             if (step === 1) {
                 if (!formData.name || formData.phone.length !== 11 || !formData.email.includes('@')) {

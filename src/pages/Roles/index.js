@@ -1,7 +1,7 @@
 // Roles Management view. Table of roles with name, description, user count badge.
 // Full front-end CRUD: add, edit, delete with confirm modal. 3-dot action menu (fixed position).
 import { useState, useRef, useEffect } from "react";
-import "../roles.css";
+import "./Roles.css";
 
 const INITIAL_ROLES = [
     { id: 1, name: "Super Admin",    description: "Full access to all system",            users: 2  },

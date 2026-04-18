@@ -1,7 +1,7 @@
 // Companies Management view. Table of companies with name, industry, plan id, status.
 // Full front-end CRUD: add, edit, delete with confirm modal. 3-dot action menu (fixed position).
 import { useState, useRef, useEffect } from "react";
-import "../companies.css";
+import "./Companies.css";
 
 const INITIAL_COMPANIES = [
     { id: 1, name: "Natiq tec",       industry: "Soft ware dev", planId: "-", status: "Active" },

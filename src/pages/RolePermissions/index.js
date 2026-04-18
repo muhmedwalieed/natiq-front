@@ -1,7 +1,7 @@
 // Role-Permissions Management view. Select a role, see granted/revoked permissions.
 // Click a permission to toggle it between granted and revoked.
 import { useState } from "react";
-import "../rolepermissions.css";
+import "./RolePermissions.css";
 
 const ROLES = ["Super Admin", "Company admin", "Manager", "Agent", "Viewer"];
 

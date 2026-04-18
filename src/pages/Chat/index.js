@@ -1,7 +1,7 @@
 // Password creation page (post-signup flow). Validates password match, toggles visibility.
 // Uses react-toastify for feedback.
-import "../App.css";
-import logo from "../assets/logo.png";
+import "../../App.css";
+import logo from "../../assets/logo.png";
 import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

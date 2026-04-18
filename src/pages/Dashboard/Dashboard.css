@@ -3,7 +3,8 @@
 /* ── Layout ── */
 .dash-wrapper {
   min-height: 100vh;
-  background-color: #ffffff;
+  background: linear-gradient(to bottom, #072b34 0%, #2a4f2b 55%, #496f23 100%);
+  background-attachment: fixed;
   font-family: 'Poppins', sans-serif;
 }
 
@@ -11,18 +12,28 @@
 .dash-nav {
   display: flex;
   align-items: center;
-  padding: 0 48px;
+  padding: 0 24px;
   height: 72px;
-  border-bottom: 1.5px solid #e8e8e8;
+  border-bottom: 1px solid #eef1ec;
   background: #ffffff;
-  gap: 32px;
+  gap: 20px;
+  box-sizing: border-box;
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* Global rule to fix dark titles on dark background */
+.cm-title, .um-title, .rm-title, .pm-title {
+  color: #ffffff !important;
 }
 
 .dash-logo {
   width: 110px;
   height: auto;
   flex-shrink: 0;
-  margin-right: 16px;
+  margin-right: 8px;
 }
 
 .dash-nav-links {
@@ -30,27 +41,31 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  gap: 32px;
+  gap: 16px;
   flex: 1;
+  align-items: center;
+  justify-content: center;
 }
 
 .dash-nav-item {
   font-size: 14px;
-  font-weight: 500;
-  color: #042835;
+  font-weight: 600;
+  color: #555;
   cursor: pointer;
-  padding: 4px 0;
+  padding: 6px 14px;
+  border-radius: 20px;
   white-space: nowrap;
-  transition: color 0.2s;
+  transition: all 0.2s;
 }
 
 .dash-nav-item:hover {
-  color: #55711d;
+  color: #042835;
+  background: #f4f5f7;
 }
 
 .dash-nav-item.active {
   color: #042835;
-  font-weight: 600;
+  background: #CAF301;
 }
 
 .dash-logout-btn {
@@ -83,12 +98,14 @@
   margin-top: 120px;
   font-size: 20px;
   font-weight: 500;
-  color: #aaa;
+  color: rgba(255,255,255,0.4);
 }
 
 /* ── Profile Card ── */
 .profile-card {
-  background: #f8f8f8;
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 20px;
   box-shadow: 0 4px 32px rgba(0, 0, 0, 0.08);
   padding: 40px 56px 36px;
@@ -102,7 +119,7 @@
 .profile-title {
   font-size: 28px;
   font-weight: 700;
-  color: #042835;
+  color: #fff;
   margin: 0 0 24px;
   align-self: flex-start;
 }
@@ -157,25 +174,25 @@
 .field-group label {
   font-size: 12px;
   font-weight: 500;
-  color: #042835;
+  color: rgba(255,255,255,0.7);
 }
 
 .field-group input {
   height: 52px;
-  border: 1.5px solid #e0e0e0;
+  border: 1.5px solid rgba(255,255,255,0.15);
   border-radius: 30px;
   padding: 0 22px;
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
-  color: #042835;
-  background: #fafafa;
+  color: #fff;
+  background: rgba(255,255,255,0.08);
   outline: none;
-  transition: border 0.2s;
+  transition: border 0.2s, background 0.2s;
 }
 
 .field-group input:focus {
-  border-color: #55711d;
-  background: #fff;
+  border-color: #CAF301;
+  background: rgba(255,255,255,0.12);
 }
 
 /* ── Edit Button ── */
@@ -204,11 +221,12 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
-  color: #555;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 10px;
 }
 
 .profile-timestamps strong {
   font-weight: 600;
-  color: #042835;
+  color: #CAF301;
 }

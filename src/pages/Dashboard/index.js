@@ -1,13 +1,13 @@
 // Dashboard page shown after login. Navbar switches between views.
 // Views: Profiles, Users, Roles, Companies, Permissions, Role-Permissions.
 import { useState } from "react";
-import logo from "../assets/logo.png";
-import UsersManagement from "./UsersManagement";
-import RolesManagement from "./RolesManagement";
-import CompaniesManagement from "./CompaniesManagement";
-import RolePermissions from "./RolePermissions";
-import PermissionsManagement from "./PermissionsManagement";
-import "../dashboard.css";
+import logo from "../../assets/logo.png";
+import UsersManagement from "../Users";
+import RolesManagement from "../Roles";
+import CompaniesManagement from "../Companies";
+import RolePermissions from "../RolePermissions";
+import PermissionsManagement from "../Permissions";
+import "./Dashboard.css";
 
 const NAV_LINKS = ["Companies", "Users", "Profiles", "Roles", "Permissions", "Role-Permissions", "Subscriptions"];
 

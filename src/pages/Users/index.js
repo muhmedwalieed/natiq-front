@@ -1,7 +1,7 @@
 // Users Management view. Search, filter by role, add/edit/delete users.
 // Full front-end: mock data, search, role filter, 3-dot actions menu (fixed position).
 import { useState, useRef, useEffect } from "react";
-import "../users.css";
+import "./Users.css";
 
 const ROLES = ["All Roles", "Super admin", "Admin", "User"];
 
