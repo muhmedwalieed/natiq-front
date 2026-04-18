@@ -67,7 +67,7 @@ const Login = () => {
             }
             
             // Call actual agent API instead of simulated timeout
-            agentApi.login(formData.email, formData.password, 'natiq')
+            agentApi.login(formData.email, formData.password, 'prime-store')
                 .then(data => {
                     toast.success("Welcome back to NATIQ!");
                     setTimeout(() => navigate("/dashboard"), 1000);
