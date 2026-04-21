@@ -2858,6 +2858,288 @@
     to   { transform: scaleY(1.0); opacity: 1;   }
 }
 
+/* ── Calls page: immersive session (not ticket-chat layout) ── */
+.cd-wa-chat-area-call-immersive {
+    background: transparent !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.cd-call-session {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 0;
+}
+
+.cd-call-session-bg {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 120% 80% at 50% -10%, rgba(56, 120, 80, 0.45) 0%, transparent 55%),
+        radial-gradient(ellipse 90% 60% at 80% 100%, rgba(4, 40, 53, 0.9) 0%, transparent 50%),
+        linear-gradient(165deg, #031820 0%, #042835 35%, #0a2832 70%, #041016 100%);
+}
+
+.cd-call-session-bg-ringing {
+    background:
+        radial-gradient(ellipse 100% 70% at 50% 0%, rgba(180, 120, 40, 0.35) 0%, transparent 50%),
+        radial-gradient(ellipse 80% 50% at 20% 100%, rgba(4, 40, 53, 0.85) 0%, transparent 45%),
+        linear-gradient(165deg, #0d2830 0%, #042835 40%, #1a3020 100%);
+}
+
+.cd-call-session-vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.35);
+}
+
+.cd-call-session-inner {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 20px 32px;
+    text-align: center;
+    min-height: 0;
+}
+
+.cd-call-session-kicker {
+    margin: 0 0 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(202, 243, 1, 0.85);
+}
+
+.cd-call-session-kicker-amber {
+    color: rgba(250, 204, 21, 0.95);
+    letter-spacing: 0.18em;
+}
+
+.cd-call-session-avatar-stage {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cd-call-session-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid rgba(202, 243, 1, 0.35);
+    animation: cd-call-session-pulse 2.2s ease-out infinite;
+}
+
+.cd-call-session-ring-amber {
+    border-color: rgba(250, 204, 21, 0.4);
+}
+
+.cd-call-session-ring-1 {
+    width: 132px;
+    height: 132px;
+    animation-delay: 0s;
+}
+
+.cd-call-session-ring-2 {
+    width: 168px;
+    height: 168px;
+    animation-delay: 0.5s;
+    opacity: 0.7;
+}
+
+/* Driven by customer audio level — no looping pulse */
+.cd-call-session-ring-live {
+    animation: none !important;
+    top: 50%;
+    left: 50%;
+    margin: 0;
+    transform-origin: center center;
+    will-change: transform, opacity;
+}
+
+@keyframes cd-call-session-pulse {
+    0% { transform: scale(0.92); opacity: 0.9; }
+    70% { transform: scale(1.08); opacity: 0; }
+    100% { transform: scale(1.08); opacity: 0; }
+}
+
+.cd-call-session-avatar {
+    position: relative;
+    z-index: 2;
+    width: 112px;
+    height: 112px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 800;
+    color: #042835;
+    background: linear-gradient(145deg, #c8e860 0%, #CAF301 40%, #7cb342 100%);
+    box-shadow:
+        0 0 0 4px rgba(202, 243, 1, 0.2),
+        0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+.cd-call-session-avatar-amber {
+    background: linear-gradient(145deg, #fde68a 0%, #f59e0b 45%, #b45309 100%);
+    color: #1a0f05;
+    box-shadow:
+        0 0 0 4px rgba(250, 204, 21, 0.25),
+        0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.cd-call-session-title {
+    margin: 0;
+    font-size: clamp(1.35rem, 3vw, 1.85rem);
+    font-weight: 700;
+    color: #f8fafc;
+    letter-spacing: -0.02em;
+    max-width: 90%;
+}
+
+.cd-call-session-sub {
+    margin: 10px 0 0;
+    font-size: 14px;
+    color: rgba(248, 250, 252, 0.55);
+    max-width: 320px;
+    line-height: 1.45;
+}
+
+.cd-call-session-wave {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 4px;
+    height: 40px;
+    margin: 28px 0 12px;
+}
+
+.cd-call-session-wave-bar {
+    width: 4px;
+    min-height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, #CAF301, rgba(202, 243, 1, 0.25));
+    animation: cd-call-session-wave 0.85s ease-in-out infinite alternate;
+}
+
+/* Driven by real mic levels — no CSS loop */
+.cd-call-session-wave-bar-live {
+    animation: none !important;
+    transition: height 0.06s ease-out, opacity 0.08s ease-out;
+}
+
+.cd-call-session-ringing .cd-call-session-wave-bar {
+    background: linear-gradient(180deg, #fcd34d, rgba(250, 204, 21, 0.25));
+}
+
+@keyframes cd-call-session-wave {
+    from { height: 8px; opacity: 0.65; }
+    to { height: 32px; opacity: 1; }
+}
+
+.cd-call-session-timer {
+    margin: 4px 0 0;
+    font-size: 2rem;
+    font-weight: 300;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.12em;
+    color: #CAF301;
+    text-shadow: 0 0 40px rgba(202, 243, 1, 0.35);
+}
+
+.cd-call-session-dock {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 40px;
+    margin-top: auto;
+    padding-top: 32px;
+}
+
+.cd-call-session-dock-wide {
+    gap: 36px;
+    margin-top: 28px;
+    padding-top: 8px;
+}
+
+.cd-call-session-dock-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.cd-call-session-dock-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(248, 250, 252, 0.45);
+}
+
+.cd-call-session-round {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cd-call-session-round:hover {
+    transform: scale(1.06);
+}
+
+.cd-call-session-round-icon {
+    width: 30px;
+    height: 30px;
+    color: #fff;
+}
+
+.cd-call-session-round-mic {
+    position: relative;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+.cd-call-session-round-mic.is-muted {
+    background: rgba(239, 68, 68, 0.25);
+    border-color: rgba(248, 113, 113, 0.5);
+}
+
+.cd-call-session-round-mic.is-muted::after {
+    content: "";
+    position: absolute;
+    width: 38px;
+    height: 3px;
+    background: #fecaca;
+    border-radius: 2px;
+    transform: rotate(-42deg);
+}
+
+.cd-call-session-round-end {
+    background: linear-gradient(145deg, #ef4444, #b91c1c);
+    border: 1px solid rgba(254, 202, 202, 0.35);
+    box-shadow: 0 10px 32px rgba(220, 38, 38, 0.45);
+}
+
 .cd-active-call-info {
     display: flex;
     align-items: center;
@@ -3245,4 +3527,360 @@
 .cd-toast-success .cd-toast-icon { background: rgba(202, 243, 1, 0.2); color: #5b7100; }
 .cd-toast-error .cd-toast-icon { background: rgba(255, 71, 87, 0.1); color: #ff4757; }
 .cd-toast-info .cd-toast-icon { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-
+
+/* ── Calendar (full width; day tasks open in a sheet) ── */
+.cd-calendar-workspace {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+}
+
+.cd-calendar-main {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.cd-cal-task-pill {
+    position: absolute;
+    right: 8px;
+    top: 6px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: #042835;
+    color: #CAF301;
+    font-size: 10px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+}
+
+.cd-cal-task-panel {
+    border: 1px solid #e6ebf2;
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.cd-cal-task-panel h3 {
+    margin: 0;
+    color: #042835;
+}
+
+.cd-cal-task-panel-sub {
+    margin: 6px 0 12px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.cd-cal-task-form {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.cd-cal-task-form input {
+    border: 1px solid #d6dce8;
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 13px;
+}
+
+.cd-cal-task-form button {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #042835;
+    color: #CAF301;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.cd-cal-task-plus {
+    width: 14px;
+    height: 14px;
+}
+
+.cd-cal-task-list {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cd-cal-task-empty {
+    border: 1px dashed #d6dce8;
+    border-radius: 12px;
+    padding: 14px;
+    color: #64748b;
+    font-size: 13px;
+    text-align: center;
+}
+
+.cd-cal-task-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    align-items: center;
+    border: 1px solid #e6ebf2;
+    border-radius: 12px;
+    padding: 10px;
+}
+
+.cd-cal-task-item-done .cd-cal-task-info p {
+    text-decoration: line-through;
+    opacity: 0.55;
+}
+
+.cd-cal-task-check,
+.cd-cal-task-delete {
+    border: none;
+    background: transparent;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cd-cal-task-check:hover {
+    color: #16a34a;
+    background: #f0fdf4;
+}
+
+.cd-cal-task-delete:hover {
+    color: #dc2626;
+    background: #fef2f2;
+}
+
+.cd-cal-task-check svg,
+.cd-cal-task-delete svg {
+    width: 16px;
+    height: 16px;
+}
+
+.cd-cal-task-info p {
+    margin: 0;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.cd-cal-task-info span {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.cd-cal-hint {
+    margin: 14px 0 0;
+    font-size: 13px;
+    color: #64748b;
+    text-align: center;
+}
+
+/* Day task sheet (modal) */
+.cd-cal-day-sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10050;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: rgba(4, 40, 53, 0.35);
+    cursor: pointer;
+}
+
+.cd-cal-day-sheet {
+    position: fixed;
+    z-index: 10051;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(420px, calc(100vw - 32px));
+    max-height: min(85vh, 640px);
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid #e6ebf2;
+    box-shadow: 0 24px 48px rgba(4, 40, 53, 0.18);
+    overflow: hidden;
+}
+
+.cd-cal-day-sheet-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 18px 12px;
+    border-bottom: 1px solid #edf1f7;
+}
+
+.cd-cal-day-sheet-head h2 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #042835;
+    line-height: 1.35;
+}
+
+.cd-cal-day-sheet-meta {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.cd-cal-day-sheet-close {
+    flex-shrink: 0;
+    border: none;
+    background: #f1f5f9;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cd-cal-day-sheet-close:hover {
+    background: #e2e8f0;
+    color: #042835;
+}
+
+.cd-cal-day-sheet-close-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.cd-cal-day-sheet-body {
+    flex: 1;
+    min-height: 0;
+    padding: 12px 18px;
+    overflow-y: auto;
+}
+
+.cd-cal-day-sheet-body .cd-cal-task-list {
+    max-height: none;
+}
+
+.cd-cal-day-sheet-foot {
+    padding: 14px 18px 18px;
+    border-top: 1px solid #edf1f7;
+    background: #fafbfc;
+}
+
+.cd-cal-day-sheet-primary {
+    width: 100%;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: #042835;
+    color: #CAF301;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.cd-cal-day-sheet-primary:hover {
+    filter: brightness(1.05);
+}
+
+.cd-cal-task-form--sheet {
+    margin-bottom: 0;
+}
+
+.cd-cal-task-prompt {
+    margin: 0 0 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #042835;
+}
+
+.cd-cal-task-field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 4px;
+}
+
+.cd-cal-task-optional {
+    font-weight: 500;
+    color: #94a3b8;
+}
+
+.cd-cal-task-form-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.cd-cal-task-primary {
+    flex: 1;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #042835;
+    color: #CAF301;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.cd-cal-task-secondary {
+    flex: 1;
+    border: 1px solid #d6dce8;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #fff;
+    color: #334155;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.cd-cal-task-empty--sheet {
+    background: #f8fafc;
+}
+
+/* Calls: same shell as tickets, no channel rail — sidebar meets list directly */
+.cd-wa-sidebar-calls .cd-wa-list {
+    padding-top: 4px;
+}
+
+/* Mute on gradient chat header (live call) */
+.cd-chat-action-btn.cd-call-mute-btn {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.cd-chat-action-btn.cd-call-mute-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.cd-chat-action-btn.cd-call-mute-btn.cd-call-muted {
+    background: rgba(231, 76, 60, 0.25);
+    border-color: rgba(231, 76, 60, 0.45);
+    color: #ffd0d0;
+}

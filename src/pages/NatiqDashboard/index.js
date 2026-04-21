@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, memo } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { io } from "socket.io-client";
 import logo from "../../assets/logo.png";
@@ -8,8 +8,6 @@ import {
     Squares2X2Icon,
     ClipboardDocumentListIcon,
     CalendarDaysIcon,
-    ChartBarIcon,
-    UserGroupIcon,
     Cog6ToothIcon,
     ArrowRightOnRectangleIcon,
     MagnifyingGlassIcon,
@@ -22,20 +20,18 @@ import {
     ChevronRightIcon,
     StarIcon,
     PlusIcon,
-    PencilSquareIcon,
     MicrophoneIcon,
     PaperAirplaneIcon,
     EllipsisHorizontalIcon,
     HashtagIcon,
     ClockIcon,
-    FunnelIcon,
     ChatBubbleLeftRightIcon,
     NoSymbolIcon,
     PhoneIcon,
-    PhoneArrowDownLeftIcon,
     PhoneXMarkIcon,
-    SpeakerXMarkIcon,
-    SpeakerWaveIcon,
+    CheckCircleIcon,
+    TrashIcon,
+    XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
 
@@ -194,6 +190,12 @@ function CalendarView() {
     const today = new Date();
     const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
     const [selectedDate, setSelectedDate] = useState(today);
+    const [tasksByDate, setTasksByDate] = useState({});
+    const [taskTitle, setTaskTitle] = useState("");
+    const [taskTime, setTaskTime] = useState("");
+    const [daySheetOpen, setDaySheetOpen] = useState(false);
+    const [addingTask, setAddingTask] = useState(false);
+    const storageKey = "natiq_calendar_tasks";
 
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
@@ -230,6 +232,87 @@ function CalendarView() {
     const isSelected = (day) =>
         !day.outside && day.day === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear();
 
+    const toDateKey = (dateObj) => {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const d = String(dateObj.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+    };
+
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                setTasksByDate(JSON.parse(saved));
+            }
+        } catch (err) {
+            console.error("Failed to load calendar tasks:", err);
+        }
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem(storageKey, JSON.stringify(tasksByDate));
+    }, [tasksByDate]);
+
+    const selectedKey = toDateKey(selectedDate);
+    const selectedTasks = tasksByDate[selectedKey] || [];
+
+    const closeDaySheet = useCallback(() => {
+        setDaySheetOpen(false);
+        setAddingTask(false);
+        setTaskTitle("");
+        setTaskTime("");
+    }, []);
+
+    useEffect(() => {
+        if (!daySheetOpen) return;
+        const onKey = (e) => {
+            if (e.key === "Escape") closeDaySheet();
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [daySheetOpen, closeDaySheet]);
+
+    const getTaskCountForDay = (day) => {
+        if (day.outside) return 0;
+        const key = toDateKey(new Date(year, month, day.day));
+        return (tasksByDate[key] || []).length;
+    };
+
+    const addTask = () => {
+        const cleanTitle = taskTitle.trim();
+        if (!cleanTitle) return;
+        const newTask = {
+            id: Date.now(),
+            title: cleanTitle,
+            time: taskTime || null,
+            done: false,
+        };
+        setTasksByDate((prev) => ({
+            ...prev,
+            [selectedKey]: [...(prev[selectedKey] || []), newTask],
+        }));
+        setTaskTitle("");
+        setTaskTime("");
+        setAddingTask(false);
+    };
+
+    const toggleTaskDone = (taskId) => {
+        setTasksByDate((prev) => ({
+            ...prev,
+            [selectedKey]: (prev[selectedKey] || []).map((task) =>
+                task.id === taskId ? { ...task, done: !task.done } : task
+            ),
+        }));
+    };
+
+    const deleteTask = (taskId) => {
+        setTasksByDate((prev) => ({
+            ...prev,
+            [selectedKey]: (prev[selectedKey] || []).filter((task) => task.id !== taskId),
+        }));
+    };
+
     return (
         <div className="cd-calendar-layout">
             <div className="cd-page-heading cd-calendar-heading">
@@ -238,49 +321,187 @@ function CalendarView() {
             </div>
 
             <div className="cd-calendar-card">
-                {/* Calendar header */}
-                <div className="cd-calendar-header">
-                    <div className="cd-calendar-nav">
-                        <button className="cd-cal-nav-btn" onClick={prevMonth}>
-                            <ChevronLeftIcon className="cd-cal-nav-icon" />
-                        </button>
-                        <h2 className="cd-cal-month-title">{MONTH_NAMES[month]} {year}</h2>
-                        <button className="cd-cal-nav-btn" onClick={nextMonth}>
-                            <ChevronRightIcon className="cd-cal-nav-icon" />
-                        </button>
-                    </div>
-                    <button className="cd-cal-today-btn" onClick={goToToday}>Today</button>
-                </div>
-
-                {/* Weekday headers */}
-                <div className="cd-calendar-grid cd-calendar-weekdays">
-                    {WEEKDAYS.map((w) => (
-                        <div key={w} className="cd-cal-weekday">{w}</div>
-                    ))}
-                </div>
-
-                {/* Day cells */}
-                <div className="cd-calendar-grid cd-calendar-days">
-                    {cells.map((cell, idx) => (
-                        <div
-                            key={idx}
-                            className={`cd-cal-day${cell.outside ? " cd-cal-day-outside" : ""}${isToday(cell) ? " cd-cal-day-today" : ""}${isSelected(cell) ? " cd-cal-day-selected" : ""}`}
-                            onClick={() => {
-                                if (!cell.outside) setSelectedDate(new Date(year, month, cell.day));
-                            }}
-                        >
-                            <span className="cd-cal-day-number">{cell.day}</span>
+                <div className="cd-calendar-workspace">
+                    <div className="cd-calendar-main">
+                        <div className="cd-calendar-header">
+                            <div className="cd-calendar-nav">
+                                <button className="cd-cal-nav-btn" onClick={prevMonth}>
+                                    <ChevronLeftIcon className="cd-cal-nav-icon" />
+                                </button>
+                                <h2 className="cd-cal-month-title">{MONTH_NAMES[month]} {year}</h2>
+                                <button className="cd-cal-nav-btn" onClick={nextMonth}>
+                                    <ChevronRightIcon className="cd-cal-nav-icon" />
+                                </button>
+                            </div>
+                            <button className="cd-cal-today-btn" onClick={goToToday}>Today</button>
                         </div>
-                    ))}
-                </div>
 
-                {/* Selected date info */}
-                <div className="cd-cal-footer">
-                    <p className="cd-cal-selected-date">
-                        Selected: <strong>{selectedDate.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</strong>
-                    </p>
+                        <div className="cd-calendar-grid cd-calendar-weekdays">
+                            {WEEKDAYS.map((w) => (
+                                <div key={w} className="cd-cal-weekday">{w}</div>
+                            ))}
+                        </div>
+
+                        <div className="cd-calendar-grid cd-calendar-days">
+                            {cells.map((cell, idx) => {
+                                const taskCount = getTaskCountForDay(cell);
+                                return (
+                                    <div
+                                        key={idx}
+                                        className={`cd-cal-day${cell.outside ? " cd-cal-day-outside" : ""}${isToday(cell) ? " cd-cal-day-today" : ""}${isSelected(cell) && daySheetOpen ? " cd-cal-day-selected" : ""}`}
+                                        onClick={() => {
+                                            if (cell.outside) return;
+                                            const d = new Date(year, month, cell.day);
+                                            setSelectedDate(d);
+                                            setDaySheetOpen(true);
+                                            setAddingTask(false);
+                                            setTaskTitle("");
+                                            setTaskTime("");
+                                        }}
+                                    >
+                                        <span className="cd-cal-day-number">{cell.day}</span>
+                                        {!cell.outside && taskCount > 0 && (
+                                            <span className="cd-cal-task-pill">{taskCount}</span>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <p className="cd-cal-hint">Click a day to view tasks and add new ones.</p>
+                    </div>
                 </div>
             </div>
+
+            {daySheetOpen && (
+                <>
+                    <button
+                        type="button"
+                        className="cd-cal-day-sheet-backdrop"
+                        aria-label="Close"
+                        onClick={closeDaySheet}
+                    />
+                    <div
+                        className="cd-cal-day-sheet"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="cd-cal-day-sheet-title"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="cd-cal-day-sheet-head">
+                            <div>
+                                <h2 id="cd-cal-day-sheet-title">
+                                    {selectedDate.toLocaleDateString("en-US", {
+                                        weekday: "long",
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                    })}
+                                </h2>
+                                <p className="cd-cal-day-sheet-meta">
+                                    {selectedTasks.length === 0
+                                        ? "No tasks scheduled"
+                                        : `${selectedTasks.length} task${selectedTasks.length === 1 ? "" : "s"}`}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                className="cd-cal-day-sheet-close"
+                                onClick={closeDaySheet}
+                                aria-label="Close"
+                            >
+                                <XMarkIcon className="cd-cal-day-sheet-close-icon" />
+                            </button>
+                        </div>
+
+                        <div className="cd-cal-day-sheet-body">
+                            <div className="cd-cal-task-list">
+                                {selectedTasks.length === 0 && !addingTask ? (
+                                    <div className="cd-cal-task-empty cd-cal-task-empty--sheet">
+                                        Nothing here yet. Use the button below to add a task.
+                                    </div>
+                                ) : (
+                                    selectedTasks.map((task) => (
+                                        <div key={task.id} className={`cd-cal-task-item${task.done ? " cd-cal-task-item-done" : ""}`}>
+                                            <button
+                                                type="button"
+                                                className="cd-cal-task-check"
+                                                onClick={() => toggleTaskDone(task.id)}
+                                                title="Mark complete"
+                                            >
+                                                <CheckCircleIcon />
+                                            </button>
+                                            <div className="cd-cal-task-info">
+                                                <p>{task.title}</p>
+                                                <span>{task.time || "No time set"}</span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className="cd-cal-task-delete"
+                                                onClick={() => deleteTask(task.id)}
+                                                title="Delete task"
+                                            >
+                                                <TrashIcon />
+                                            </button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="cd-cal-day-sheet-foot">
+                            {!addingTask ? (
+                                <button
+                                    type="button"
+                                    className="cd-cal-day-sheet-primary"
+                                    onClick={() => setAddingTask(true)}
+                                >
+                                    <PlusIcon className="cd-cal-task-plus" />
+                                    Add task
+                                </button>
+                            ) : (
+                                <div className="cd-cal-task-form cd-cal-task-form--sheet">
+                                    <p className="cd-cal-task-prompt">What do you want to add for this day?</p>
+                                    <label className="cd-cal-task-field-label" htmlFor="cd-cal-task-title">Task</label>
+                                    <input
+                                        id="cd-cal-task-title"
+                                        type="text"
+                                        value={taskTitle}
+                                        onChange={(e) => setTaskTitle(e.target.value)}
+                                        placeholder="Describe the task…"
+                                        autoFocus
+                                    />
+                                    <label className="cd-cal-task-field-label" htmlFor="cd-cal-task-time">
+                                        Time <span className="cd-cal-task-optional">(optional)</span>
+                                    </label>
+                                    <input
+                                        id="cd-cal-task-time"
+                                        type="time"
+                                        value={taskTime}
+                                        onChange={(e) => setTaskTime(e.target.value)}
+                                    />
+                                    <div className="cd-cal-task-form-row">
+                                        <button
+                                            type="button"
+                                            className="cd-cal-task-secondary"
+                                            onClick={() => {
+                                                setAddingTask(false);
+                                                setTaskTitle("");
+                                                setTaskTime("");
+                                            }}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button type="button" className="cd-cal-task-primary" onClick={addTask}>
+                                            Save task
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 }
@@ -330,7 +551,6 @@ function TicketsView() {
         setSearchParams(params);
     };
 
-    const [view, setView] = useState("Tickets");
     const [tickets, setTickets] = useState([]);
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [messages, setMessages] = useState([]);
@@ -400,38 +620,8 @@ function TicketsView() {
     }, [socketInstance, selectedTicket]);
 
     const filters = ["Pending", "Opened", "Closed"];
-    const filterColor = { Pending: "cd-pill-pending", Opened: "cd-pill-opened", Closed: "cd-pill-closed" };
 
-    useEffect(() => {
-        // Only clear selected ticket if it's a manual filter change, 
-        // not an automatic selection from claim
-        if (!selectedTicket || (selectedTicket.status !== 'in_progress' && filter === 'Opened')) {
-            setSelectedTicket(null);
-        }
-        fetchTickets();
-    }, [filter, channel]);
-
-    // Use a separate effect for refresh triggered by sockets (debounced)
-    useEffect(() => {
-        if (refreshTrigger > 0) {
-            const timer = setTimeout(() => {
-                fetchTickets(true); // silent refresh for sockets
-            }, 500);
-            return () => clearTimeout(timer);
-        }
-    }, [refreshTrigger]);
-
-    useEffect(() => {
-        if (selectedTicket) {
-            fetchMessages(selectedTicket._id);
-        }
-    }, [selectedTicket]);
-
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
-
-    const fetchTickets = async (silent = false) => {
+    const fetchTickets = useCallback(async (silent = false) => {
         if (!silent) setLoadingTickets(true);
         try {
             let queryParams = "";
@@ -452,9 +642,9 @@ function TicketsView() {
         } finally {
             if (!silent) setLoadingTickets(false);
         }
-    };
+    }, [filter, channel]);
 
-    const fetchMessages = async (ticketId) => {
+    const fetchMessages = useCallback(async (ticketId) => {
         setLoadingMessages(true);
         try {
             const data = await agentApi.getTicketMessages(ticketId);
@@ -464,7 +654,36 @@ function TicketsView() {
         } finally {
             setLoadingMessages(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        // Only clear selected ticket if it's a manual filter change, 
+        // not an automatic selection from claim
+        if (!selectedTicket || (selectedTicket.status !== 'in_progress' && filter === 'Opened')) {
+            setSelectedTicket(null);
+        }
+        fetchTickets();
+    }, [filter, channel, selectedTicket, fetchTickets]);
+
+    // Use a separate effect for refresh triggered by sockets (debounced)
+    useEffect(() => {
+        if (refreshTrigger > 0) {
+            const timer = setTimeout(() => {
+                fetchTickets(true); // silent refresh for sockets
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [refreshTrigger, fetchTickets]);
+
+    useEffect(() => {
+        if (selectedTicket) {
+            fetchMessages(selectedTicket._id);
+        }
+    }, [selectedTicket, fetchMessages]);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
 
     const handleSend = async () => {
         if (!inputMsg.trim() || !selectedTicket) return;
@@ -520,13 +739,6 @@ function TicketsView() {
         if (diffHrs < 24) return `${diffHrs}h ago`;
         const diffDays = Math.floor(diffHrs / 24);
         return `${diffDays}d ago`;
-    };
-
-    // Status config for visual indicators
-    const statusConfig = {
-        Pending: { label: 'Pending', dotClass: 'cd-dot-pending', pillClass: 'cd-fpill-pending' },
-        Opened: { label: 'In Progress', dotClass: 'cd-dot-opened', pillClass: 'cd-fpill-opened' },
-        Closed: { label: 'Closed', dotClass: 'cd-dot-closed', pillClass: 'cd-fpill-closed' },
     };
 
     const priorityIcon = (p) => {
@@ -783,6 +995,40 @@ const TicketCard = memo(({ ticket, isActive, onClick, formatRelativeTime, priori
     );
 });
 
+const CallQueueCard = memo(({ call, isActive, onClick, formatRelativeTime }) => {
+    const initials = (call.customerName || "CU").substring(0, 2).toUpperCase();
+    const ts = call.startedAt || call.createdAt;
+
+    return (
+        <div
+            className={`cd-tkt-card${isActive ? " cd-tkt-card-active" : ""}`}
+            onClick={onClick}
+        >
+            <div className="cd-tkt-card-top">
+                <div className="cd-tkt-card-left">
+                    <div className="cd-tkt-avatar-wrap">
+                        <div className={`cd-tkt-avatar ${isActive ? "cd-tkt-avatar-active" : ""}`}>{initials}</div>
+                    </div>
+                    <div className="cd-tkt-info">
+                        <span className="cd-tkt-name">{call.customerName || "Customer"}</span>
+                        <span className="cd-tkt-preview-line">
+                            <PhoneIcon className="cd-tkt-hash-icon" />
+                            Incoming call
+                        </span>
+                    </div>
+                </div>
+                <div className="cd-tkt-card-right">
+                    <span className="cd-tkt-time-ago">
+                        <ClockIcon className="cd-tkt-clock-icon" />
+                        {formatRelativeTime(ts)}
+                    </span>
+                </div>
+            </div>
+            {isActive && <div className="cd-tkt-card-indicator" />}
+        </div>
+    );
+});
+
 const MessageItem = memo(({ msg, idx, selectedTicket }) => {
     let source = 'customer';
     if (msg.role === 'agent') source = 'agent';
@@ -811,76 +1057,440 @@ const MessageItem = memo(({ msg, idx, selectedTicket }) => {
     );
 });
 
+function formatCallDuration(totalSec) {
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+/** Maps agent microphone frequency energy to bar heights (0–1 per band). */
+function useMicLevelBands(mediaStream, bandCount) {
+    const [levels, setLevels] = useState(null);
+    const smoothRef = useRef([]);
+
+    useEffect(() => {
+        if (!mediaStream) {
+            smoothRef.current = [];
+            setLevels(null);
+            return undefined;
+        }
+        if (!mediaStream.getAudioTracks().length) {
+            setLevels(null);
+            return undefined;
+        }
+
+        let audioCtx;
+        let source;
+        let analyser;
+        let rafId;
+        let cancelled = false;
+
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            source = audioCtx.createMediaStreamSource(mediaStream);
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 512;
+            analyser.smoothingTimeConstant = 0.72;
+            source.connect(analyser);
+        } catch (e) {
+            console.warn("[Mic viz] setup failed:", e);
+            setLevels(null);
+            return undefined;
+        }
+
+        if (smoothRef.current.length !== bandCount) {
+            smoothRef.current = Array.from({ length: bandCount }, () => 0.06);
+        }
+
+        const freqData = new Uint8Array(analyser.frequencyBinCount);
+        const timeData = new Uint8Array(analyser.fftSize);
+        /* First FFT bins = DC / rumble; on mic they often read “full” even in silence — skip them. */
+        const skipLowBins = 20;
+
+        const tick = () => {
+            if (cancelled || !analyser) return;
+            if (audioCtx.state === "suspended") {
+                audioCtx.resume().catch(() => {});
+            }
+            analyser.getByteTimeDomainData(timeData);
+            let sumSq = 0;
+            for (let i = 0; i < timeData.length; i++) {
+                const x = (timeData[i] - 128) / 128;
+                sumSq += x * x;
+            }
+            const rms = Math.sqrt(sumSq / timeData.length);
+            const micOpen = mediaStream.getAudioTracks().some((t) => t.readyState === "live" && t.enabled);
+            /* How much real signal is on the mic (time domain). Kills false “full bars” when quiet. */
+            const speechGain = !micOpen
+                ? 0
+                : Math.min(1, Math.max(0, (rms - 0.012) / 0.055));
+
+            analyser.getByteFrequencyData(freqData);
+            const maxBin = Math.min(freqData.length - 1, Math.floor(freqData.length * 0.92));
+            const span = Math.max(bandCount * 2, maxBin - skipLowBins);
+
+            const next = [];
+            for (let i = 0; i < bandCount; i++) {
+                const startBin = Math.min(maxBin, skipLowBins + Math.floor((i / bandCount) * span));
+                const endBin = Math.min(
+                    maxBin,
+                    Math.max(startBin, skipLowBins + Math.floor(((i + 1) / bandCount) * span))
+                );
+                let peak = 0;
+                for (let j = startBin; j <= endBin; j++) {
+                    peak = Math.max(peak, freqData[j] / 255);
+                }
+                let boosted = Math.min(1, peak * 2.05);
+                boosted *= 0.1 + 0.9 * speechGain;
+                const prev = smoothRef.current[i] ?? 0.06;
+                const smooth = prev * 0.62 + boosted * 0.38;
+                smoothRef.current[i] = smooth;
+                const v = micOpen ? smooth : Math.min(smooth * 0.12, 0.07);
+                next.push(v);
+            }
+            setLevels(next);
+            rafId = requestAnimationFrame(tick);
+        };
+        rafId = requestAnimationFrame(tick);
+
+        return () => {
+            cancelled = true;
+            if (rafId) cancelAnimationFrame(rafId);
+            try {
+                source?.disconnect();
+                analyser?.disconnect();
+            } catch (_) {
+                /* noop */
+            }
+            if (audioCtx) {
+                audioCtx.close().catch(() => {});
+            }
+        };
+    }, [mediaStream, bandCount]);
+
+    return levels;
+}
+
+/** Smoothed 0–1 envelope from remote (customer) audio — drives avatar rings. */
+function useRemoteAudioEnvelope(mediaStream) {
+    const [level, setLevel] = useState(0);
+    const smoothRef = useRef(0);
+
+    useEffect(() => {
+        if (!mediaStream || !mediaStream.getAudioTracks().length) {
+            smoothRef.current = 0;
+            setLevel(0);
+            return undefined;
+        }
+
+        let audioCtx;
+        let source;
+        let analyser;
+        let rafId;
+        let cancelled = false;
+
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            source = audioCtx.createMediaStreamSource(mediaStream);
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 1024;
+            analyser.smoothingTimeConstant = 0.78;
+            source.connect(analyser);
+        } catch (e) {
+            console.warn("[Remote audio viz] setup failed:", e);
+            return undefined;
+        }
+
+        const buf = new Uint8Array(analyser.fftSize);
+
+        const tick = () => {
+            if (cancelled || !analyser) return;
+            if (audioCtx.state === "suspended") {
+                audioCtx.resume().catch(() => {});
+            }
+            analyser.getByteTimeDomainData(buf);
+            let sumSq = 0;
+            for (let i = 0; i < buf.length; i++) {
+                const x = (buf[i] - 128) / 128;
+                sumSq += x * x;
+            }
+            const rms = Math.sqrt(sumSq / buf.length);
+            const inst = Math.min(1, rms * 5.5);
+            smoothRef.current = smoothRef.current * 0.74 + inst * 0.26;
+            setLevel(smoothRef.current);
+            rafId = requestAnimationFrame(tick);
+        };
+        rafId = requestAnimationFrame(tick);
+
+        return () => {
+            cancelled = true;
+            if (rafId) cancelAnimationFrame(rafId);
+            try {
+                source?.disconnect();
+                analyser?.disconnect();
+            } catch (_) {
+                /* noop */
+            }
+            if (audioCtx) {
+                audioCtx.close().catch(() => {});
+            }
+        };
+    }, [mediaStream]);
+
+    return level;
+}
+
+function CallWaveBars({ count = 9, levels = null }) {
+    const live = Array.isArray(levels) && levels.length >= count;
+    return (
+        <div className="cd-call-session-wave" aria-hidden>
+            {Array.from({ length: count }, (_, i) => {
+                const lv = live ? Math.max(0, Math.min(1, levels[i])) : 0;
+                return (
+                    <span
+                        key={i}
+                        className={`cd-call-session-wave-bar${live ? " cd-call-session-wave-bar-live" : ""}`}
+                        style={
+                            live
+                                ? {
+                                      height: `${6 + lv * 54}px`,
+                                      opacity: 0.4 + lv * 0.6,
+                                      animation: "none",
+                                  }
+                                : { animationDelay: `${i * 0.07}s` }
+                        }
+                    />
+                );
+            })}
+        </div>
+    );
+}
+
+function CallSessionLive({ activeCall, callMuted, micStream, customerAudioStream, onHangup, onToggleMute }) {
+    const [elapsed, setElapsed] = useState(0);
+    const bandLevels = useMicLevelBands(micStream, 9);
+    const remoteEnvelope = useRemoteAudioEnvelope(customerAudioStream);
+    const ringsFollowCustomer = !!customerAudioStream;
+
+    useEffect(() => {
+        if (!activeCall?.answeredAt) return undefined;
+        const start = new Date(activeCall.answeredAt).getTime();
+        const tick = () => setElapsed(Math.max(0, Math.floor((Date.now() - start) / 1000)));
+        tick();
+        const id = setInterval(tick, 1000);
+        return () => clearInterval(id);
+    }, [activeCall?.callId, activeCall?.answeredAt]);
+
+    const name = activeCall.customerName || "Customer";
+    const initials = name.substring(0, 2).toUpperCase();
+
+    return (
+        <div className="cd-call-session cd-call-session-live">
+            <div className="cd-call-session-bg" aria-hidden />
+            <div className="cd-call-session-vignette" aria-hidden />
+            <div className="cd-call-session-inner">
+                <p className="cd-call-session-kicker">On air</p>
+                <div className="cd-call-session-avatar-stage">
+                    <span
+                        className={`cd-call-session-ring cd-call-session-ring-1${ringsFollowCustomer ? " cd-call-session-ring-live" : ""}`}
+                        style={
+                            ringsFollowCustomer
+                                ? {
+                                      transform: `translate(-50%, -50%) scale(${0.88 + remoteEnvelope * 0.2})`,
+                                      opacity: 0.22 + remoteEnvelope * 0.68,
+                                  }
+                                : undefined
+                        }
+                    />
+                    <span
+                        className={`cd-call-session-ring cd-call-session-ring-2${ringsFollowCustomer ? " cd-call-session-ring-live" : ""}`}
+                        style={
+                            ringsFollowCustomer
+                                ? {
+                                      transform: `translate(-50%, -50%) scale(${0.88 + remoteEnvelope * 0.28})`,
+                                      opacity: 0.12 + remoteEnvelope * 0.58,
+                                  }
+                                : undefined
+                        }
+                    />
+                    <div className="cd-call-session-avatar">{initials}</div>
+                </div>
+                <h2 className="cd-call-session-title">{name}</h2>
+                <p className="cd-call-session-sub">Voice session · you are connected</p>
+                <CallWaveBars levels={bandLevels} />
+                <p className="cd-call-session-timer">{formatCallDuration(elapsed)}</p>
+                <div className="cd-call-session-dock">
+                    <div className="cd-call-session-dock-item">
+                        <button
+                            type="button"
+                            className={`cd-call-session-round cd-call-session-round-mic${callMuted ? " is-muted" : ""}`}
+                            onClick={onToggleMute}
+                            title={callMuted ? "Unmute microphone" : "Mute microphone"}
+                        >
+                            <MicrophoneIcon className="cd-call-session-round-icon" />
+                        </button>
+                        <span className="cd-call-session-dock-label">{callMuted ? "Muted" : "Mic"}</span>
+                    </div>
+                    <div className="cd-call-session-dock-item">
+                        <button
+                            type="button"
+                            className="cd-call-session-round cd-call-session-round-end"
+                            onClick={onHangup}
+                            title="End call"
+                        >
+                            <PhoneXMarkIcon className="cd-call-session-round-icon" />
+                        </button>
+                        <span className="cd-call-session-dock-label">End</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function CallSessionRinging({ call, onAccept }) {
+    const name = call.customerName || "Customer";
+    const initials = name.substring(0, 2).toUpperCase();
+
+    return (
+        <div className="cd-call-session cd-call-session-ringing">
+            <div className="cd-call-session-bg cd-call-session-bg-ringing" aria-hidden />
+            <div className="cd-call-session-vignette" aria-hidden />
+            <div className="cd-call-session-inner">
+                <p className="cd-call-session-kicker cd-call-session-kicker-amber">Incoming</p>
+                <div className="cd-call-session-avatar-stage">
+                    <span className="cd-call-session-ring cd-call-session-ring-1 cd-call-session-ring-amber" />
+                    <span className="cd-call-session-ring cd-call-session-ring-2 cd-call-session-ring-amber" />
+                    <div className="cd-call-session-avatar cd-call-session-avatar-amber">{initials}</div>
+                </div>
+                <h2 className="cd-call-session-title">{name}</h2>
+                <p className="cd-call-session-sub">Waiting on you — pick up</p>
+                <CallWaveBars count={7} />
+                <div className="cd-call-session-dock cd-call-session-dock-wide">
+                    <button type="button" className="cd-call-btn cd-call-answer" onClick={onAccept} title="Accept">
+                        <PhoneIcon style={{ width: 28, height: 28 }} />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 /* ═══════════════════════════════════════
    CALLS VIEW
 ═══════════════════════════════════════ */
-function CallsView() {
-    const [calls, setCalls] = useState([]);
-    const [loading, setLoading] = useState(true);
+function CallsView({
+    availableCalls = [],
+    activeCall,
+    callMuted,
+    agentMicStream,
+    customerAudioStream,
+    onAcceptCall,
+    onHangup,
+    onToggleMute,
+}) {
+    const [selectedCallId, setSelectedCallId] = useState(null);
+
+    const sortedCalls = useMemo(
+        () =>
+            [...availableCalls].sort(
+                (a, b) =>
+                    new Date(a.startedAt || a.createdAt || Date.now()) - new Date(b.startedAt || b.createdAt || Date.now())
+            ),
+        [availableCalls]
+    );
+
+    const selectedQueueCall = useMemo(
+        () => sortedCalls.find((c) => c.callId === selectedCallId) || null,
+        [sortedCalls, selectedCallId]
+    );
 
     useEffect(() => {
-        (async () => {
-            try {
-                setLoading(true);
-                const data = await agentApi.getCallHistory();
-                setCalls(data.calls || []);
-            } catch (e) {
-                console.error('fetch calls error', e);
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, []);
+        if (activeCall) setSelectedCallId(null);
+    }, [activeCall]);
 
-    const formatDuration = (secs) => {
-        if (!secs) return '0:00';
-        const m = Math.floor(secs / 60);
-        const s = secs % 60;
-        return `${m}:${String(s).padStart(2, '0')}`;
+    useEffect(() => {
+        if (selectedCallId && !sortedCalls.some((c) => c.callId === selectedCallId)) {
+            setSelectedCallId(null);
+        }
+    }, [selectedCallId, sortedCalls]);
+
+    const formatRelativeTime = (dateStr) => {
+        if (!dateStr) return "";
+        const d = new Date(dateStr);
+        const now = new Date();
+        const diffMs = now - d;
+        const diffMins = Math.floor(diffMs / 60000);
+        if (diffMins < 1) return "Just now";
+        if (diffMins < 60) return `${diffMins}m ago`;
+        const diffHrs = Math.floor(diffMins / 60);
+        if (diffHrs < 24) return `${diffHrs}h ago`;
+        const diffDays = Math.floor(diffHrs / 24);
+        return `${diffDays}d ago`;
     };
 
-    const statusColor = { ended: '#22c55e', missed: '#f43f5e', rejected: '#f97316', ringing: '#facc15', active: '#3b82f6' };
+    const handleAcceptSelected = () => {
+        if (!selectedQueueCall) return;
+        onAcceptCall(selectedQueueCall.callId);
+    };
 
     return (
-        <div className="cd-calls-layout">
-            <div className="cd-page-heading">
-                <h1>Call History</h1>
-                <p>All voice calls handled through Natiq.</p>
-            </div>
-            <div className="cd-calls-list">
-                {loading ? (
-                    <div className="cd-tkt-loading"><div className="cd-spinner-small" /><span>Loading calls...</span></div>
-                ) : calls.length === 0 ? (
-                    <div className="cd-tkt-empty">
-                        <PhoneIcon className="cd-tkt-empty-icon" />
-                        <p className="cd-tkt-empty-text">No call records yet</p>
-                        <p className="cd-tkt-empty-sub">Calls will appear here once completed</p>
-                    </div>
-                ) : (
-                    calls.map(call => (
-                        <div key={call._id} className="cd-call-record">
-                            <div className="cd-call-record-left">
-                                <div className="cd-call-avatar">
-                                    {(call.customerName || 'CU').substring(0, 2).toUpperCase()}
-                                </div>
-                                <div className="cd-call-info">
-                                    <span className="cd-call-name">{call.customerName || 'Customer'}</span>
-                                    <span className="cd-call-sub">
-                                        {new Date(call.startedAt || call.createdAt).toLocaleString()}
-                                    </span>
-                                </div>
+        <div className="cd-wa-layout">
+            <div className="cd-wa-sidebar cd-wa-sidebar-calls">
+                <div className="cd-wa-sidebar-header">
+                    <h2>Calls</h2>
+                </div>
+
+                <div className="cd-wa-list">
+                    {sortedCalls.length === 0 ? (
+                        <div className="cd-tkt-empty-modern">
+                            <div className="cd-empty-icon-glow">
+                                <PhoneIcon className="cd-tkt-empty-icon-m" />
                             </div>
-                            <div className="cd-call-record-right">
-                                <span className="cd-call-duration">
-                                    <ClockIcon style={{ width: 14, height: 14, display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                                    {formatDuration(call.duration)}
-                                </span>
-                                <span className="cd-call-status" style={{ color: statusColor[call.status] || '#888', background: (statusColor[call.status] || '#888') + '22' }}>
-                                    {call.status}
-                                </span>
-                            </div>
+                            <p className="cd-tkt-empty-text-m">No calls in queue</p>
+                            <p className="cd-tkt-empty-sub-m">New calls appear here when someone rings.</p>
                         </div>
-                    ))
+                    ) : (
+                        sortedCalls.map((call) => (
+                            <CallQueueCard
+                                key={call.callId}
+                                call={call}
+                                isActive={selectedCallId === call.callId}
+                                formatRelativeTime={formatRelativeTime}
+                                onClick={() => setSelectedCallId(call.callId)}
+                            />
+                        ))
+                    )}
+                </div>
+            </div>
+
+            <div
+                className={`cd-wa-chat-area${activeCall || selectedQueueCall ? " cd-wa-chat-area-call-immersive" : ""}`}
+            >
+                {activeCall ? (
+                    <CallSessionLive
+                        activeCall={activeCall}
+                        callMuted={callMuted}
+                        micStream={agentMicStream}
+                        customerAudioStream={customerAudioStream}
+                        onHangup={onHangup}
+                        onToggleMute={onToggleMute}
+                    />
+                ) : selectedQueueCall ? (
+                    <CallSessionRinging
+                        call={selectedQueueCall}
+                        onAccept={handleAcceptSelected}
+                    />
+                ) : (
+                    <div className="cd-chat-placeholder">
+                        <div className="cd-placeholder-icon-wrap">
+                            <PhoneIcon className="cd-placeholder-icon" />
+                        </div>
+                        <h3 className="cd-placeholder-title">Your calls</h3>
+                        <p className="cd-placeholder-text">
+                            Select a call from the list on the left to accept.
+                        </p>
+                    </div>
                 )}
             </div>
         </div>
@@ -895,11 +1505,7 @@ function AnalyticsView() {
     const [filterOpen, setFilterOpen] = useState(false);
     const [analyticsData, setAnalyticsData] = useState([]);
 
-    useEffect(() => {
-        fetchAnalytics();
-    }, [filter]);
-
-    const fetchAnalytics = async () => {
+    const fetchAnalytics = useCallback(async () => {
         try {
             let queryParams = "";
             if (filter === "Resolved") queryParams = "?status=resolved";
@@ -925,7 +1531,11 @@ function AnalyticsView() {
         } catch (error) {
             console.error("Fetch analytics failed:", error);
         }
-    };
+    }, [filter]);
+
+    useEffect(() => {
+        fetchAnalytics();
+    }, [filter, fetchAnalytics]);
 
     const filterOptions = ["All Tickets", "Resolved", "Pending", "High Emotion", "Low Emotion"];
 
@@ -1050,18 +1660,13 @@ function ProfileView({ user }) {
     );
 }
 
-const GENERAL_ITEMS = [
-    { key: "Settings", Icon: Cog6ToothIcon },
-    { key: "Logout", Icon: ArrowRightOnRectangleIcon },
-];
-
 /* ═══════════════════════════════════════
    MAIN DASHBOARD COMPONENT
 ═══════════════════════════════════════ */
 /* ═══════════════════════════════════════
    INCOMING CALL OVERLAY
 ═══════════════════════════════════════ */
-function IncomingCallOverlay({ callInfo, onAnswer, onReject }) {
+function IncomingCallOverlay({ callInfo, onAnswer }) {
     return (
         <div className="cd-call-overlay">
             <div className="cd-call-overlay-card">
@@ -1073,9 +1678,6 @@ function IncomingCallOverlay({ callInfo, onAnswer, onReject }) {
                 <p className="cd-call-overlay-name">{callInfo.customerName || 'Customer'}</p>
                 <p className="cd-call-overlay-sub">Voice Call • Now</p>
                 <div className="cd-call-overlay-actions">
-                    <button className="cd-call-btn cd-call-reject" onClick={onReject} title="Reject">
-                        <PhoneXMarkIcon style={{ width: 26, height: 26 }} />
-                    </button>
                     <button className="cd-call-btn cd-call-answer" onClick={onAnswer} title="Answer">
                         <PhoneIcon style={{ width: 26, height: 26 }} />
                     </button>
@@ -1088,7 +1690,7 @@ function IncomingCallOverlay({ callInfo, onAnswer, onReject }) {
 /* ═══════════════════════════════════════
    ACTIVE CALL PANEL
 ═══════════════════════════════════════ */
-function ActiveCallPanel({ callInfo, onHangup, muted, onToggleMute }) {
+function ActiveCallPanel({ callInfo, muted, onToggleMute }) {
     const [elapsed, setElapsed] = useState(0);
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -1134,12 +1736,6 @@ function ActiveCallPanel({ callInfo, onHangup, muted, onToggleMute }) {
                             </button>
                             <span style={{ fontSize: '12px', color: '#888' }}>{muted ? 'Unmute Mic' : 'Mute Mic'}</span>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                            <button className="cd-call-btn cd-call-reject" onClick={onHangup} title="End call">
-                                <PhoneXMarkIcon style={{ width: 26, height: 26 }} />
-                            </button>
-                            <span style={{ fontSize: '12px', color: '#888' }}>End Call</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1160,10 +1756,6 @@ function ActiveCallPanel({ callInfo, onHangup, muted, onToggleMute }) {
                 <button className={`cd-active-ctrl-btn${muted ? ' cd-ctrl-muted' : ''}`} style={{ position: 'relative' }} onClick={onToggleMute} title={muted ? 'Unmute Mic' : 'Mute Mic'}>
                     <MicrophoneIcon style={{ width: 18, height: 18 }} />
                     {muted && <div style={{ position: 'absolute', left: '50%', top: '50%', width: '22px', height: '2px', background: '#ff4757', transform: 'translate(-50%, -50%) rotate(45deg)' }} />}
-                </button>
-                <button className="cd-active-ctrl-btn cd-ctrl-end" onClick={onHangup} title="End call">
-                    <PhoneXMarkIcon style={{ width: 18, height: 18 }} />
-                    End
                 </button>
             </div>
         </div>
@@ -1210,17 +1802,19 @@ function NatiqDashboard() {
     const [trackerActive, setTrackerActive] = useState(true);
 
     // ── Call state ──
-    const [incomingCall, setIncomingCall] = useState(null);   // { callId, customerName, customerId, startedAt }
+    const [availableCalls, setAvailableCalls] = useState([]); // only currently available/ringing calls
     const [activeCall, setActiveCall] = useState(null);       // same shape + answeredAt
     const [callMuted, setCallMuted] = useState(false);
-    const [missedCallCount, setMissedCallCount] = useState(0);
+    const [agentMicStream, setAgentMicStream] = useState(null);
+    const [customerAudioStream, setCustomerAudioStream] = useState(null);
     const callSocketRef = useRef(null);
     const peerRef = useRef(null);           // RTCPeerConnection
     const localStreamRef = useRef(null);    // local MediaStream
     const remoteAudioRef = useRef(null);    // <audio> element for remote stream
     const callStartedAtRef = useRef(null);
     const activeCallRef = useRef(null);
-    const incomingCallRef = useRef(null);
+    const availableCallsRef = useRef([]);
+    const incomingCall = availableCalls[0] || null;
     
     // Recording Refs
     const mediaRecorderRef = useRef(null);
@@ -1323,15 +1917,29 @@ function NatiqDashboard() {
         ? channelDist.map(c => ({ name: c.channel || "Unknown", percent: c.percentage || 0 }))
         : [{ name: "No data", percent: 0 }];
 
+    const stopRingtone = useCallback(() => {
+        if (ringtoneIntervalRef.current) {
+            clearInterval(ringtoneIntervalRef.current);
+            ringtoneIntervalRef.current = null;
+        }
+    }, []);
+
     // Sync refs with state so that closures can access the latest values
     useEffect(() => {
         activeCallRef.current = activeCall;
-        incomingCallRef.current = incomingCall;
-    }, [activeCall, incomingCall]);
+        availableCallsRef.current = availableCalls;
+    }, [activeCall, availableCalls]);
+
+    useEffect(() => {
+        if (!activeCall && availableCalls.length === 0) {
+            stopRingtone();
+        }
+    }, [activeCall, availableCalls, stopRingtone]);
 
     // ── Synthetic Ringtone ──
     const playRingtone = useCallback(() => {
         try {
+            stopRingtone(); // one interval only — multiple call:incoming was stacking intervals
             if (!ringtoneAudioCtxRef.current) {
                 ringtoneAudioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
             }
@@ -1369,14 +1977,7 @@ function NatiqDashboard() {
         } catch (e) {
             console.error('[Ringtone] Failed to play:', e);
         }
-    }, []);
-
-    const stopRingtone = useCallback(() => {
-        if (ringtoneIntervalRef.current) {
-            clearInterval(ringtoneIntervalRef.current);
-            ringtoneIntervalRef.current = null;
-        }
-    }, []);
+    }, [stopRingtone]);
 
     // ── Call socket setup ──
     useEffect(() => {
@@ -1392,10 +1993,13 @@ function NatiqDashboard() {
         // Incoming call from a customer
         socket.on('call:incoming', (data) => {
             console.log('[Calls] incoming:', data);
-            setIncomingCall(data);
-            setMissedCallCount(c => c + 1);
-            // Play synthetic ringing sound
-            playRingtone();
+            setAvailableCalls((prev) => {
+                const exists = prev.some((c) => c.callId === data.callId);
+                if (exists) return prev;
+                const next = [...prev, data].sort((a, b) => new Date(a.startedAt || a.createdAt || Date.now()) - new Date(b.startedAt || b.createdAt || Date.now()));
+                return next;
+            });
+            if (!activeCallRef.current) playRingtone();
         });
 
         // Customer accepted our 'accept' → start WebRTC as answerer
@@ -1419,11 +2023,12 @@ function NatiqDashboard() {
 
         socket.on('call:ended', ({ callId, endedBy, duration }) => {
             console.log('[Calls] ended', callId, 'by', endedBy, 'duration', duration);
+            setAvailableCalls((prev) => prev.filter((call) => call.callId !== callId));
             cleanupCall(duration || 0, endedBy || 'customer');
         });
 
-        socket.on('call:rejected', () => {
-            // Another agent rejected – ignore for now
+        socket.on('call:rejected', ({ callId }) => {
+            setAvailableCalls((prev) => prev.filter((call) => call.callId !== callId));
         });
 
         return () => { socket.disconnect(); };
@@ -1494,7 +2099,7 @@ function NatiqDashboard() {
     const cleanupCall = useCallback(async (duration, endedBy) => {
         console.log('[Calls] Cleanup WebRTC, duration =', duration);
 
-        const callSnap = activeCallRef.current || incomingCallRef.current;
+        const callSnap = activeCallRef.current;
         const currentCallId = callSnap?.callId;
         
         // Save to backend FIRST so it doesn't fail if recording fails
@@ -1522,6 +2127,9 @@ function NatiqDashboard() {
             await stopAndUploadRecording(currentCallId).catch(console.error);
         }
 
+        setAgentMicStream(null);
+        setCustomerAudioStream(null);
+
         // Stop local stream
         if (localStreamRef.current) {
             localStreamRef.current.getTracks().forEach(t => t.stop());
@@ -1534,20 +2142,21 @@ function NatiqDashboard() {
         }
         
         setActiveCall(null);
-        setIncomingCall(null);
         setCallMuted(false);
         callStartedAtRef.current = null;
-        stopRingtone();
-    }, [activeCall, incomingCall, stopAndUploadRecording, stopRingtone]);
+        if ((availableCallsRef.current || []).length === 0) stopRingtone();
+    }, [stopAndUploadRecording, stopRingtone]);
 
-    const handleAnswerCall = useCallback(async () => {
-        stopRingtone();
-        if (!incomingCall) return;
-        const call = { ...incomingCall, answeredAt: new Date().toISOString() };
+    const handleAnswerCall = useCallback(async (targetCallId = null) => {
+        const targetCall = targetCallId
+            ? (availableCallsRef.current || []).find((call) => call.callId === targetCallId)
+            : (availableCallsRef.current || [])[0];
+        if (!targetCall) return;
+        const call = { ...targetCall, answeredAt: new Date().toISOString() };
         setActiveCall(call);
-        setIncomingCall(null);
-        setMissedCallCount(c => Math.max(0, c - 1));
+        setAvailableCalls((prev) => prev.filter((item) => item.callId !== call.callId));
         callStartedAtRef.current = Date.now();
+        if ((availableCallsRef.current || []).length <= 1) stopRingtone();
 
         // Emit accept so server notifies customer
         callSocketRef.current?.emit('call:accept', { callId: call.callId });
@@ -1556,6 +2165,7 @@ function NatiqDashboard() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
             localStreamRef.current = stream;
+            setAgentMicStream(stream);
 
             const pc = new RTCPeerConnection({
                 iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
@@ -1565,12 +2175,16 @@ function NatiqDashboard() {
             stream.getTracks().forEach(t => pc.addTrack(t, stream));
 
             pc.ontrack = (event) => {
-                if (remoteAudioRef.current) {
-                    remoteAudioRef.current.srcObject = event.streams[0];
+                const remoteStream = event.streams[0];
+                if (remoteStream) {
+                    setCustomerAudioStream(remoteStream);
+                }
+                if (remoteAudioRef.current && remoteStream) {
+                    remoteAudioRef.current.srcObject = remoteStream;
                     remoteAudioRef.current.play().catch(console.warn);
-                    
-                    // Start recording once remote stream is established
-                    setTimeout(() => startRecording(), 500); 
+                }
+                if (remoteStream) {
+                    setTimeout(() => startRecording(), 500);
                 }
             };
 
@@ -1587,17 +2201,18 @@ function NatiqDashboard() {
             console.error('[Calls] getUserMedia error:', err);
             alert('Could not access microphone. Please allow microphone access.');
             setActiveCall(null);
-            setIncomingCall(null);
+            setAvailableCalls((prev) => [targetCall, ...prev].sort((a, b) => new Date(a.startedAt || a.createdAt || Date.now()) - new Date(b.startedAt || b.createdAt || Date.now())));
         }
-    }, [incomingCall]);
+    }, [startRecording, stopRingtone]);
 
-    const handleRejectCall = useCallback(() => {
-        stopRingtone();
-        if (!incomingCall) return;
-        callSocketRef.current?.emit('call:reject', { callId: incomingCall.callId });
-        setIncomingCall(null);
-        setMissedCallCount(c => Math.max(0, c - 1));
-    }, [incomingCall, stopRingtone]);
+    const handleToggleMute = useCallback(() => {
+        if (localStreamRef.current) {
+            localStreamRef.current.getAudioTracks().forEach(t => {
+                t.enabled = callMuted; // toggle
+            });
+        }
+        setCallMuted(m => !m);
+    }, [callMuted]);
 
     const handleHangup = useCallback(() => {
         const duration = callStartedAtRef.current
@@ -1610,15 +2225,6 @@ function NatiqDashboard() {
         });
         cleanupCall(duration, 'agent');
     }, [activeCall, cleanupCall]);
-
-    const handleToggleMute = useCallback(() => {
-        if (localStreamRef.current) {
-            localStreamRef.current.getAudioTracks().forEach(t => {
-                t.enabled = callMuted; // toggle
-            });
-        }
-        setCallMuted(m => !m);
-    }, [callMuted]);
 
     // Handle logout
     const handleNavClick = (key) => {
@@ -1640,7 +2246,6 @@ function NatiqDashboard() {
         
         if (pathMap[key]) {
             navigate(pathMap[key]);
-            if (key === "Calls") setMissedCallCount(0);
         }
     };
 
@@ -1649,20 +2254,18 @@ function NatiqDashboard() {
             {/* Hidden audio element for remote stream */}
             <audio ref={remoteAudioRef} autoPlay playsInline style={{ display: 'none' }} />
 
-            {/* Incoming Call Overlay */}
-            {incomingCall && !activeCall && (
+            {/* Incoming overlay only off the Calls page — on /calls the queue handles accept */}
+            {incomingCall && !activeCall && activeNav !== "Calls" && (
                 <IncomingCallOverlay
                     callInfo={incomingCall}
                     onAnswer={handleAnswerCall}
-                    onReject={handleRejectCall}
                 />
             )}
 
-            {/* Active Call Bar (pinned bottom) or fullscreen overlay depending on expansion */}
-            {activeCall && (
+            {/* Bottom bar only when not on Calls page — Calls view has its own immersive session UI */}
+            {activeCall && activeNav !== "Calls" && (
                 <ActiveCallPanel
                     callInfo={activeCall}
-                    onHangup={handleHangup}
                     muted={callMuted}
                     onToggleMute={handleToggleMute}
                 />
@@ -1690,8 +2293,8 @@ function NatiqDashboard() {
                                     {hasBadge && pendingCount > 0 && (
                                         <span className="cd-h-badge">+{pendingCount}</span>
                                     )}
-                                    {hasCallBadge && missedCallCount > 0 && (
-                                        <span className="cd-h-badge cd-h-badge-call">{missedCallCount}</span>
+                                    {hasCallBadge && availableCalls.length > 0 && (
+                                        <span className="cd-h-badge cd-h-badge-call">{availableCalls.length}</span>
                                     )}
                                 </div>
                             ))}
@@ -1735,7 +2338,18 @@ function NatiqDashboard() {
                     {activeNav === "Tickets" && <TicketsView />}
 
                     {/* ── Calls view ── */}
-                    {activeNav === "Calls" && <CallsView />}
+                    {activeNav === "Calls" && (
+                        <CallsView
+                            availableCalls={availableCalls}
+                            activeCall={activeCall}
+                            callMuted={callMuted}
+                            agentMicStream={agentMicStream}
+                            customerAudioStream={customerAudioStream}
+                            onAcceptCall={handleAnswerCall}
+                            onHangup={handleHangup}
+                            onToggleMute={handleToggleMute}
+                        />
+                    )}
 
                     {/* ── Analytics view ── */}
                     {activeNav === "Analytics" && <AnalyticsView />}

@@ -4,6 +4,8 @@ import Chat from "./pages/Chat";
 import Dashboard from "./pages/Dashboard";
 import ClientDashboard from "./pages/ClientDashboard";
 import NatiqDashboard from "./pages/NatiqDashboard";
+import TeamLeaderDashboard from "./pages/TeamLeaderDashboard";
+import OwnerDashboard from "./pages/OwnerDashboard";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
@@ -21,6 +23,8 @@ function App() {
         <Route path="/calendar" element={<NatiqDashboard />} />
         <Route path="/profile" element={<NatiqDashboard />} />
         <Route path="/settings" element={<NatiqDashboard />} />
+        <Route path="/team-leader" element={<TeamLeaderDashboard />} />
+        <Route path="/owner-dashboard" element={<OwnerDashboard />} />
       </Routes>
     </BrowserRouter>
   );

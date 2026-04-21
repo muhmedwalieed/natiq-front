@@ -1,127 +1,117 @@
-// Role-Permissions Management view. Select a role, see granted/revoked permissions.
-// Click a permission to toggle it between granted and revoked.
-import { useState } from "react";
+// RBAC matrix from backend (read-only). Same labels as server role keys.
+import { useState, useEffect } from "react";
 import "./RolePermissions.css";
+import { managementApi } from "../../services/managementApi";
 
-const ROLES = ["Super Admin", "Company admin", "Manager", "Agent", "Viewer"];
+const RESOURCE_LABELS = {
+    companies: "Companies",
+    users: "Users",
+    knowledge_base: "Knowledge base",
+    chat: "Chat",
+    tickets: "Tickets",
+    embeddings: "Embeddings",
+    analytics: "Analytics",
+    audit_log: "Audit log",
+};
 
-const INITIAL_DATA = {
-    "Super Admin": {
-        granted: ["view_single_permission", "delete_permission", "view_all_role_permissions", "update_role_permission", "create_role", "create_permission", "view_all_permission"],
-        revoked:  ["update_permission", "create_role_permission", "view_single_role_permission"],
-    },
-    "Company admin": {
-        granted: ["view_single_permission", "delete_permission", "view_all_role_permissions", "update_role_permission", "create_role"],
-        revoked:  ["create_permission", "view_all_permission", "update_permission", "create_role_permission", "view_single_role_permission"],
-    },
-    "Manager": {
-        granted: ["view_single_permission", "view_all_role_permissions"],
-        revoked:  ["delete_permission", "update_role_permission", "create_role", "create_permission", "view_all_permission", "update_permission", "create_role_permission", "view_single_role_permission"],
-    },
-    "Agent": {
-        granted: ["view_single_permission"],
-        revoked:  ["delete_permission", "view_all_role_permissions", "update_role_permission", "create_role", "create_permission", "view_all_permission", "update_permission", "create_role_permission", "view_single_role_permission"],
-    },
-    "Viewer": {
-        granted: ["view_single_permission", "view_all_permission", "view_all_role_permissions", "view_single_role_permission"],
-        revoked:  ["delete_permission", "update_role_permission", "create_role", "create_permission", "update_permission", "create_role_permission"],
-    },
+const ACTION_LABELS = {
+    create: "Create",
+    read: "Read",
+    update: "Update",
+    delete: "Delete",
+    manage: "Manage",
 };
 
 function RolePermissions() {
-    const [selectedRole, setSelectedRole] = useState("Company admin");
-    const [data, setData] = useState(INITIAL_DATA);
+    const [matrix, setMatrix] = useState(null);
+    const [roleLabels, setRoleLabels] = useState({});
+    const [selectedRole, setSelectedRole] = useState("");
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const { granted, revoked } = data[selectedRole];
-
-    // Move permission to revoked
-    function revoke(perm) {
-        setData(prev => ({
-            ...prev,
-            [selectedRole]: {
-                granted: prev[selectedRole].granted.filter(p => p !== perm),
-                revoked: [...prev[selectedRole].revoked, perm],
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const data = await managementApi.getRbacMatrix();
+                if (cancelled) return;
+                setMatrix(data.matrix || {});
+                setRoleLabels(data.roleLabels || {});
+                const keys = Object.keys(data.matrix || {});
+                if (keys.length) setSelectedRole(keys[0]);
+            } catch (e) {
+                if (!cancelled) setError(e.message || "Could not load permissions");
+            } finally {
+                if (!cancelled) setLoading(false);
             }
-        }));
-    }
+        })();
+        return () => { cancelled = true; };
+    }, []);
 
-    // Move permission to granted
-    function grant(perm) {
-        setData(prev => ({
-            ...prev,
-            [selectedRole]: {
-                granted: [...prev[selectedRole].granted, perm],
-                revoked: prev[selectedRole].revoked.filter(p => p !== perm),
-            }
-        }));
-    }
-
-    // Render permissions in a 2-column grid
-    function renderGrid(perms, type) {
-        const rows = [];
-        for (let i = 0; i < perms.length; i += 2) {
-            rows.push(
-                <div className="rp-grid-row" key={i}>
-                    <PermItem perm={perms[i]}   type={type} onRevoke={revoke} onGrant={grant} />
-                    {perms[i + 1] && <PermItem perm={perms[i + 1]} type={type} onRevoke={revoke} onGrant={grant} />}
-                    {!perms[i + 1] && <div className="rp-perm-placeholder" />}
-                </div>
-            );
-        }
-        return rows;
-    }
+    const roleKeys = matrix ? Object.keys(matrix) : [];
+    const perms = matrix && selectedRole ? matrix[selectedRole] : null;
 
     return (
         <div className="rp-outer">
             <div className="rp-card">
-                <h1 className="rp-title">Role Permissions Management</h1>
+                <h1 className="rp-title">Role permissions</h1>
+                <p className="rp-intro">
+                    Permissions are enforced on the API. This view mirrors the live RBAC matrix (read-only).
+                </p>
 
-                {/* Role selector */}
-                <div className="rp-select-group">
-                    <label className="rp-select-label">Select Role</label>
-                    <div className="rp-select-wrapper">
-                        <select
-                            className="rp-select"
-                            value={selectedRole}
-                            onChange={e => setSelectedRole(e.target.value)}
-                        >
-                            {ROLES.map(r => <option key={r}>{r}</option>)}
-                        </select>
-                        <span className="rp-select-arrow">&#8964;</span>
-                    </div>
-                </div>
+                {loading && <p className="rp-muted">Loading…</p>}
+                {error && <p className="rp-error">{error}</p>}
 
-                {/* Granted */}
-                <div className="rp-section-label rp-granted-label">Granted Permissions</div>
-                <div className="rp-grid">
-                    {granted.length === 0
-                        ? <p className="rp-empty">No granted permissions.</p>
-                        : renderGrid(granted, "granted")}
-                </div>
+                {!loading && !error && matrix && (
+                    <>
+                        <div className="rp-select-group">
+                            <label className="rp-select-label">Role</label>
+                            <div className="rp-select-wrapper">
+                                <select
+                                    className="rp-select"
+                                    value={selectedRole}
+                                    onChange={(e) => setSelectedRole(e.target.value)}
+                                >
+                                    {roleKeys.map((rk) => (
+                                        <option key={rk} value={rk}>
+                                            {roleLabels[rk] || rk}
+                                        </option>
+                                    ))}
+                                </select>
+                                <span className="rp-select-arrow">&#8964;</span>
+                            </div>
+                        </div>
 
-                {/* Revoked */}
-                <div className="rp-section-label rp-revoked-label">Revoked Permissions</div>
-                <div className="rp-grid">
-                    {revoked.length === 0
-                        ? <p className="rp-empty">No revoked permissions.</p>
-                        : renderGrid(revoked, "revoked")}
-                </div>
+                        <div className="rp-matrix-wrap">
+                            <table className="rp-matrix">
+                                <thead>
+                                    <tr>
+                                        <th>Resource</th>
+                                        <th>Allowed actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {perms &&
+                                        Object.entries(perms).map(([resource, actions]) => (
+                                            <tr key={resource}>
+                                                <td>{RESOURCE_LABELS[resource] || resource}</td>
+                                                <td>
+                                                    {actions.map((a) => (
+                                                        <span key={a} className="rp-action-pill">
+                                                            {ACTION_LABELS[a] || a}
+                                                        </span>
+                                                    ))}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
+                )}
             </div>
-        </div>
-    );
-}
-
-function PermItem({ perm, type, onRevoke, onGrant }) {
-    return (
-        <div
-            className={`rp-perm-item ${type === "granted" ? "rp-perm-granted" : "rp-perm-revoked"}`}
-            onClick={() => type === "granted" ? onRevoke(perm) : onGrant(perm)}
-            title={type === "granted" ? "Click to revoke" : "Click to grant"}
-        >
-            <span className={`rp-perm-icon ${type === "granted" ? "rp-icon-granted" : "rp-icon-revoked"}`}>
-                {type === "granted" ? "☑" : "✕"}
-            </span>
-            {perm}
         </div>
     );
 }

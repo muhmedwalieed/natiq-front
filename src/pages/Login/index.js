@@ -21,8 +21,17 @@ const Login = () => {
 
     React.useEffect(() => {
         const token = localStorage.getItem('agent_token');
+        const userStr = localStorage.getItem('agent_user');
         if (token) {
-            navigate('/dashboard');
+            try {
+                const user = JSON.parse(userStr);
+                if (user?.role === 'team_leader') navigate('/team-leader');
+                else if (user?.role === 'company_manager') navigate('/management');
+                else if (user?.role === 'company_owner') navigate('/owner-dashboard');
+                else navigate('/dashboard');
+            } catch(e) {
+                navigate('/dashboard');
+            }
         }
     }, [navigate]);
 
@@ -70,7 +79,12 @@ const Login = () => {
             agentApi.login(formData.email, formData.password, 'prime-store')
                 .then(data => {
                     toast.success("Welcome back to NATIQ!");
-                    setTimeout(() => navigate("/dashboard"), 1000);
+                    setTimeout(() => {
+                        if (data.user?.role === 'team_leader') navigate("/team-leader");
+                        else if (data.user?.role === 'company_manager') navigate("/management");
+                        else if (data.user?.role === 'company_owner') navigate("/owner-dashboard");
+                        else navigate("/dashboard");
+                    }, 1000);
                 })
                 .catch(err => {
                     toast.error(err.message || 'Login failed');
